@@ -5,10 +5,10 @@ import java.util.*
 plugins {
     id("java-library")
     id("maven-publish")
-    id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.7"
+    id("org.jetbrains.gradle.plugin.idea-ext") version "1.4.1"
     id("eclipse")
     id("groovy")
-    id("com.gtnewhorizons.retrofuturagradle") version "1.3.19"
+    id("com.gtnewhorizons.retrofuturagradle") version "2.0.2"
 }
 
 // Project properties
@@ -103,7 +103,7 @@ val runtimeOnlyNonPublishable: Configuration by configurations.creating {
 listOf(configurations.runtimeClasspath, configurations.testRuntimeClasspath).forEach {
     it.configure {
         extendsFrom(
-                runtimeOnlyNonPublishable
+            runtimeOnlyNonPublishable
         )
     }
 }
@@ -327,8 +327,8 @@ idea {
                     val self = this.delegate as org.jetbrains.gradle.ext.IdeaCompilerConfiguration
                     afterEvaluate {
                         self.javac.moduleJavacAdditionalOptions = mapOf(
-                                (project.name + ".main") to
-                                        tasks.compileJava.get().options.compilerArgs.map { '"' + it + '"' }.joinToString(" ")
+                            (project.name + ".main") to
+                                    tasks.compileJava.get().options.compilerArgs.map { '"' + it + '"' }.joinToString(" ")
                         )
                     }
                 }

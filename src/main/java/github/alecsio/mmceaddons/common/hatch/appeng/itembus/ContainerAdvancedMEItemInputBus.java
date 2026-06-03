@@ -1,10 +1,8 @@
 package github.alecsio.mmceaddons.common.hatch.appeng.itembus;
 
+import appeng.container.AEBaseContainer;
 import appeng.container.slot.SlotDisabled;
-import github.alecsio.mmceaddons.common.hatch.appeng.itembus.AdvancedMEItemInputBus;
-import hellfirepvp.modularmachinery.common.util.IOInventory;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Container;
 
 /**
  * Container for the Advanced ME Item Input Bus GUI.
@@ -12,10 +10,9 @@ import net.minecraft.inventory.Container;
  * One read-only 4x4 grids (SlotDisabled) showing extracted items from AE2,
  * plus the player's hotbar and main inventory.
  */
-public class ContainerAdvancedMEItemInputBus extends Container {
+public class ContainerAdvancedMEItemInputBus extends AEBaseContainer {
 
     private final AdvancedMEItemInputBus owner;
-    private static final int SLOT_COUNT = 16;
 
     // Grid positions
     private static final int RIGHT_GRID_X = 98;
@@ -23,35 +20,20 @@ public class ContainerAdvancedMEItemInputBus extends Container {
     private static final int GRID_COLS = 4;
     private static final int GRID_ROWS = 4;
 
-    // Player inventory positions
-    private static final int PLAYER_INVENTORY_X = 8;
-    private static final int PLAYER_INVENTORY_Y = 123;
-
     public ContainerAdvancedMEItemInputBus(AdvancedMEItemInputBus owner, EntityPlayer player) {
+        super(player.inventory, owner);
         this.owner = owner;
 
-        IOInventory inv = owner.inventory != null ? owner.inventory : new IOInventory(owner, new int[SLOT_COUNT], new int[0]);
+        // Player inventory (3 rows + hotbar)
+        this.bindPlayerInventory(getInventoryPlayer(), 0, 195 - /* height of player inventory */ 72);
 
         // Right 4x4 grid — read-only display of extracted items (SlotDisabled)
         for (int row = 0; row < GRID_ROWS; row++) {
             for (int col = 0; col < GRID_COLS; col++) {
-                addSlotToContainer(new SlotDisabled(inv, row * GRID_COLS + col,
+                addSlotToContainer(new SlotDisabled(owner.getInternalInventory(),
+                        row * GRID_COLS + col,
                         RIGHT_GRID_X + col * 18, GRID_Y + row * 18));
             }
-        }
-
-        // Player inventory (36 slots)
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                addSlotToContainer(new net.minecraft.inventory.Slot(player.inventory,
-                        36 + row * 9 + col, PLAYER_INVENTORY_X + col * 18, PLAYER_INVENTORY_Y + row * 18));
-            }
-        }
-
-        // Player hotbar (9 slots)
-        for (int col = 0; col < 9; col++) {
-            addSlotToContainer(new net.minecraft.inventory.Slot(player.inventory,
-                    col, PLAYER_INVENTORY_X + col * 18, PLAYER_INVENTORY_Y + 58));
         }
     }
 

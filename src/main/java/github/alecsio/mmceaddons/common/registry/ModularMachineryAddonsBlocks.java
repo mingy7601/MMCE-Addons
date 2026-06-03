@@ -23,6 +23,7 @@ import github.alecsio.mmceaddons.common.hatch.thaumcraft.flux.BlockFluxProviderI
 import github.alecsio.mmceaddons.common.hatch.thaumcraft.flux.BlockFluxProviderOutput;
 import github.alecsio.mmceaddons.common.hatch.thaumcraft.vis.BlockVisProviderInput;
 import github.alecsio.mmceaddons.common.hatch.thaumcraft.vis.BlockVisProviderOutput;
+import github.alecsio.mmceaddons.common.hatch.appeng.itembus.BlockAdvancedMEItemInputBus;
 
 public class ModularMachineryAddonsBlocks {
 
@@ -67,6 +68,8 @@ public class ModularMachineryAddonsBlocks {
 
     public static BlockSingularityItemInputBus blockSingularityItemInput;
     public static BlockSingularityItemOutputBus blockSingularityItemOutput;
+
+    public static BlockAdvancedMEItemInputBus blockAdvancedMEItemInputBus;
 
     public static void initialise() {
     }

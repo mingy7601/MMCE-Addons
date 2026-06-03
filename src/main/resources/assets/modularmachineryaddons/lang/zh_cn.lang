@@ -36,6 +36,7 @@ tile.modularmachineryaddons.blockdragonbreathinput.name=龙息输入仓
 tile.modularmachineryaddons.blocklaserinput.name=激光输入仓
 tile.modularmachineryaddons.blockheatinput.name=热量输入仓
 tile.modularmachineryaddons.blockheatoutput.name=热量输出仓
+tile.modularmachineryaddons.blockadvancedmeiteminputbus.name=高级ME物品输入仓
 
 item.modularmachineryaddons.itemadvancedconstructtool.name=高级扳手
 item.modularmachineryaddons.itemadvancedmachineassembler.name=高级机械组装器
@@ -60,6 +61,7 @@ error.modularmachineryaddons.component.invalid.meteor=没有找到坠星仓
 error.modularmachineryaddons.component.invalid.potential_energy=没有找到位能仓
 error.modularmachineryaddons.component.invalid.laser=没有找到激光仓
 error.modularmachineryaddons.component.invalid.heat=没有找到热量仓
+error.modularmachineryaddons.component.invalid.advanced_me_item=没有找到高级ME物品输入仓
 error.assembler.not.found=玩家物品栏中没有找到高级机械组装器
 error.encryption.key.not.found=组装器必须通过安全终端连接到ME系统才可进行物品提取
 error.security.station.not.found=无法定位安全终端

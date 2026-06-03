@@ -36,6 +36,7 @@ tile.modularmachineryaddons.blockdragonbreathinput.name=Dragon Breath Input Hatc
 tile.modularmachineryaddons.blocklaserinput.name=Laser Input Hatch
 tile.modularmachineryaddons.blockheatinput.name=Heat Input Hatch
 tile.modularmachineryaddons.blockheatoutput.name=Heat Output Hatch
+tile.modularmachineryaddons.blockadvancedmeiteminputbus.name=Advanced ME Item Input Bus
 
 item.modularmachineryaddons.itemadvancedconstructtool.name=Advanced Wrench
 item.modularmachineryaddons.itemadvancedmachineassembler.name=Advanced Machine Assembler
@@ -60,6 +61,7 @@ error.modularmachineryaddons.component.invalid.meteor=No meteor hatch found
 error.modularmachineryaddons.component.invalid.potential_energy=No potential energy hatch found
 error.modularmachineryaddons.component.invalid.laser=No laser hatch found
 error.modularmachineryaddons.component.invalid.heat=No heat hatch found
+error.modularmachineryaddons.component.invalid.advanced_me_item=No Advanced ME Item Input Bus hatch found
 error.assembler.not.found=Could not locate an advanced machine assembler item in the player's inventory
 error.encryption.key.not.found=The assembler must be linked to an ME system via a security station to allow item extraction
 error.security.station.not.found=Could not locate security station
@@ -91,6 +93,7 @@ error.modularmachineryaddons.requirement.missing.charges=Not enough dragon breat
 error.modularmachineryaddons.requirement.missing.laser.input=Missing laser requirement
 
 error.modularmachineryaddons.requirement.missing.heat.input=Not enough heat
+error.modularmachineryaddons.requirement.missing.advanced_me_item=Required item not available in AE2 network
 error.modularmachineryaddons.requirement.missing.heat.output=Not enough space for heat output
 
 
@@ -153,6 +156,7 @@ jei.tooltip.modularmachineryaddons.breath_amount=Amount
 jei.tooltip.modularmachineryaddons.potential_energy=Potential Energy:
 jei.tooltip.modularmachineryaddons.laser=Laser Energy:
 jei.tooltip.modularmachineryaddons.heat=Heat:
+jei.tooltip.modularmachineryaddons.advanced_me_item=AE2 Item
 
 # TOP
 

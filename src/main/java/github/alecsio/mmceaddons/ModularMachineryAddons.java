@@ -9,8 +9,12 @@ import github.alecsio.mmceaddons.common.Mods;
 import github.alecsio.mmceaddons.common.hatch.nuclearcraft.scrubber.commands.CommandGetCacheInfo;
 import github.alecsio.mmceaddons.common.hatch.bloodmagic.meteor.entity.EntityImprovedMeteor;
 import github.alecsio.mmceaddons.common.item.handler.RightClickHandler;
+import github.alecsio.mmceaddons.common.network.AdvancedMESettingsMessage;
+import github.alecsio.mmceaddons.common.network.AdvancedMERSyncMessage;
 import github.alecsio.mmceaddons.common.network.MachineAssemblyMessage;
 import github.alecsio.mmceaddons.common.network.MouseScrollMessage;
+import github.alecsio.mmceaddons.common.network.handler.AdvancedMESettingsMessageHandler;
+import github.alecsio.mmceaddons.common.network.handler.AdvancedMERSyncMessageHandler;
 import github.alecsio.mmceaddons.common.network.handler.MouseScrollMessageHandler;
 import github.alecsio.mmceaddons.common.registry.RegistryItems;
 import net.minecraftforge.common.MinecraftForge;
@@ -90,6 +94,12 @@ public class ModularMachineryAddons {
             MinecraftForge.EVENT_BUS.register(new ClientTickHandler());
             MinecraftForge.EVENT_BUS.register(new MachineAssemblyMessageHandler());
         }
+        // Advanced ME Input Bus network messages
+        if (Mods.APPLIEDENERGISTICS.isPresent()) {
+            INSTANCE.registerMessage(AdvancedMESettingsMessageHandler.class, AdvancedMESettingsMessage.class, 2, Side.SERVER);
+            INSTANCE.registerMessage(AdvancedMERSyncMessageHandler.class, AdvancedMERSyncMessage.class, 3, Side.SERVER);
+        }
+
         INSTANCE.registerMessage(MouseScrollMessageHandler.class, MouseScrollMessage.class, 0, Side.SERVER);
         INSTANCE.registerMessage(MachineAssemblyMessageHandler.class, MachineAssemblyMessage.class, 1, Side.CLIENT);
     }

@@ -2,10 +2,12 @@ package github.alecsio.mmceaddons.client;
 
 import github.alecsio.mmceaddons.CommonProxy;
 import github.alecsio.mmceaddons.ModularMachineryAddons;
+import github.alecsio.mmceaddons.common.hatch.appeng.itembus.AdvancedMEItemInputBus;
 import github.alecsio.mmceaddons.client.render.entity.MeteorRenderFactory;
 import github.alecsio.mmceaddons.common.Mods;
 import github.alecsio.mmceaddons.common.hatch.bloodmagic.meteor.entity.EntityImprovedMeteor;
 import github.alecsio.mmceaddons.common.hatch.vanilla.gui.GuiContainerSingularityItemBus;
+import github.alecsio.mmceaddons.client.gui.GuiAdvancedMEItemInputBus;
 import hellfirepvp.modularmachinery.common.block.BlockDynamicColor;
 import hellfirepvp.modularmachinery.common.block.BlockVariants;
 import hellfirepvp.modularmachinery.common.item.ItemDynamicColor;
@@ -145,6 +147,8 @@ public class ClientProxy extends CommonProxy {
         switch (type) {
             case VACUUM_INVENTORY:
                 return new GuiContainerSingularityItemBus((TileItemBus) present, player);
+            case ADVANCED_ME_INPUT_BUS:
+                return new GuiAdvancedMEItemInputBus((AdvancedMEItemInputBus) present, player);
         }
         return null;
     }

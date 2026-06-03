@@ -1,0 +1,7 @@
+{
+  "parent": "modularmachinery:block/blockmodel_overlay_all",
+  "textures": {
+    "bg_all": "appliedenergistics:blocks/chassis/quartz",
+    "ov_all": "modularmachineryaddons:blocks/overlay_advancedmeiteminputbus"
+  }
+}

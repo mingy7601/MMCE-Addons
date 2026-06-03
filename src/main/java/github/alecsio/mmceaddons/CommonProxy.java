@@ -1,11 +1,13 @@
 package github.alecsio.mmceaddons;
 
 import github.alecsio.mmceaddons.common.Mods;
-import github.alecsio.mmceaddons.common.hatch.vanilla.gui.ContainerSingularityItemBus;
+import github.alecsio.mmceaddons.common.hatch.appeng.itembus.AdvancedMEItemInputBus;
+import github.alecsio.mmceaddons.common.hatch.appeng.itembus.ContainerAdvancedMEItemInputBus;
 import github.alecsio.mmceaddons.common.integration.top.ModIntegrationTOP;
 import github.alecsio.mmceaddons.common.registry.ModularMachineryAddonsBlocks;
 import github.alecsio.mmceaddons.common.registry.internal.EventHandler;
 import github.alecsio.mmceaddons.common.hatch.vanilla.TileSingularityItemBus;
+import github.alecsio.mmceaddons.common.hatch.vanilla.gui.ContainerSingularityItemBus;
 import hellfirepvp.modularmachinery.common.tiles.base.TileItemBus;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -81,6 +83,9 @@ public class CommonProxy implements IGuiHandler {
         if (type == GuiType.VACUUM_INVENTORY) {
             return new ContainerSingularityItemBus((TileItemBus) present, player);
         }
+        if (type == GuiType.ADVANCED_ME_INPUT_BUS) {
+            return new ContainerAdvancedMEItemInputBus((AdvancedMEItemInputBus) present, player);
+        }
         return null;
     }
 
@@ -93,7 +98,8 @@ public class CommonProxy implements IGuiHandler {
 
     public enum GuiType {
 
-        VACUUM_INVENTORY(TileSingularityItemBus.class);
+        VACUUM_INVENTORY(TileSingularityItemBus.class),
+        ADVANCED_ME_INPUT_BUS(AdvancedMEItemInputBus.class);
 
         public final Class<? extends TileEntity> requiredTileEntity;
 

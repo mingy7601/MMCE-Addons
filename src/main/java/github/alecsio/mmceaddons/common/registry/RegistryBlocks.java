@@ -26,6 +26,8 @@ import github.alecsio.mmceaddons.common.hatch.thaumcraft.flux.BlockFluxProviderI
 import github.alecsio.mmceaddons.common.hatch.thaumcraft.flux.BlockFluxProviderOutput;
 import github.alecsio.mmceaddons.common.hatch.thaumcraft.vis.BlockVisProviderInput;
 import github.alecsio.mmceaddons.common.hatch.thaumcraft.vis.BlockVisProviderOutput;
+import github.alecsio.mmceaddons.common.hatch.appeng.itembus.BlockAdvancedMEItemInputBus;
+import github.alecsio.mmceaddons.common.hatch.appeng.itembus.AdvancedMEItemInputBus;
 import github.alecsio.mmceaddons.common.hatch.vanilla.TileBiomeProvider;
 import github.alecsio.mmceaddons.common.hatch.vanilla.TileDimensionProvider;
 import github.alecsio.mmceaddons.common.hatch.vanilla.TileSingularityItemInputBus;
@@ -141,6 +143,12 @@ public class RegistryBlocks {
             prepareItemBlockRegister(ModularMachineryAddonsBlocks.blockHeatProviderOutput);
         }
 
+        // Advanced ME Item Input Bus (AE2)
+        if (Mods.APPLIEDENERGISTICS.isPresent()) {
+            ModularMachineryAddonsBlocks.blockAdvancedMEItemInputBus = prepareRegister(new BlockAdvancedMEItemInputBus());
+            prepareItemBlockRegister(ModularMachineryAddonsBlocks.blockAdvancedMEItemInputBus);
+        }
+
         // Always register
         prepareItemBlockRegister(ModularMachineryAddonsBlocks.blockBiomeProviderInput);
         prepareItemBlockRegister(ModularMachineryAddonsBlocks.blockDimensionProviderInput);
@@ -191,6 +199,11 @@ public class RegistryBlocks {
             registerTileEntity(TileLaserProvider.class);
             registerTileEntity(TileHeatProvider.Input.class);
             registerTileEntity(TileHeatProvider.Output.class);
+        }
+
+        // Advanced ME Item Input Bus (AE2)
+        if (Mods.APPLIEDENERGISTICS.isPresent()) {
+            registerTileEntity(AdvancedMEItemInputBus.class);
         }
 
         // Always present

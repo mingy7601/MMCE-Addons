@@ -39,7 +39,6 @@ public final class SelectTop16 {
         // Stable sort by quantity descending — Collections.sort is guaranteed stable in Java
         items.sort((a, b) -> Long.compare(b.getStackSize(), a.getStackSize()));
 
-        // Take at most 16
         int size = Math.min(items.size(), MAX_ITEMS);
         return items.subList(0, size);
     }

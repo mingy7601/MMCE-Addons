@@ -1,7 +1,1 @@
-{
-  "variants": {
-    "normal": {
-      "model": "modularmachineryaddons:block/blockadvancedmeiteminputbus"
-    }
-  }
-}
+{"variants": {"normal": {"model": "modularmachineryaddons:blockadvancedmeiteminputbus"}}}

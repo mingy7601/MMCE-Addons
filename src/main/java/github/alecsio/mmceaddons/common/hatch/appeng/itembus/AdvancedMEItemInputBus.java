@@ -27,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -54,8 +55,8 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
     /** Minimum polling interval in ticks. */
     public static final int MIN_POLLING_INTERVAL_TICKS = 1;
 
-    /** Maximum polling interval in ticks. 72000 = 1h */
-    public static final int MAX_POLLING_INTERVAL_TICKS = 72000; // 30 seconds
+    /** Maximum polling interval in ticks (72000 = 1 hour). */
+    public static final int MAX_POLLING_INTERVAL_TICKS = 72000;
 
     private static final int SLOT_COUNT = 16;
 
@@ -75,18 +76,13 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     // ---- Inventory construction ----
-    /** Maximum stack size per slot — matches AE2's internal item cap. */
-    private static final int SLOT_STACK_LIMIT = Integer.MAX_VALUE;
-
     @Override
     public IOInventory buildInventory() {
         int[] slotIndices = new int[SLOT_COUNT];
-        for (int i = 0; i < SLOT_COUNT; i++) {
-            slotIndices[i] = i;
-        }
+        Arrays.setAll(slotIndices, i -> i);
         IOInventory inv = new IOInventory(this, slotIndices, new int[0]);
         // Each slot can hold one unique item type up to AE2's internal cap.
-        inv.setStackLimit(SLOT_STACK_LIMIT, slotIndices);
+        inv.setStackLimit(Integer.MAX_VALUE, slotIndices);
         return inv;
     }
 
@@ -140,15 +136,7 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
         }
 
         IGrid grid = gridNode.getGrid();
-        if (grid == null) {
-            return Optional.empty();
-        }
-
         IStorageGrid storage = grid.getCache(IStorageGrid.class);
-        if (storage == null) {
-            return Optional.empty();
-        }
-
         return Optional.of(storage.getInventory(channel));
     }
 
@@ -176,22 +164,16 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
             return;
         }
 
-        IEnergyGrid energyGrid = getEnergyGrid();
-        if (energyGrid == null) {
+        GridContext gridCtx = getGridContext();
+        if (gridCtx == null) {
             return;
         }
 
-        Optional<IMEInventory<IAEItemStack>> optInv = getStorageInventory();
-        if (!optInv.isPresent()) {
-            LOGGER.info("[AE2 Bus] drainIntoInventory: SKIPPED — no storage inventory");
-            return;
-        }
-
-        IMEInventory<IAEItemStack> meInv = optInv.get();
+        IEnergyGrid energyGrid = gridCtx.energyGrid;
+        IMEInventory<IAEItemStack> meInv = gridCtx.meInventory;
         int slots = inventory != null ? inventory.getSlots() : 0;
 
         // ---- Phase 1 — merge matching items into existing non-empty slots. ----
-        int phase1Drained = 0;
         for (int i = 0; i < slots; i++) {
             ItemStack cur = inventory.getStackInSlot(i);
             if (cur.isEmpty()) continue;
@@ -199,7 +181,6 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
             // Skip slots already at full capacity.
             long slotLimit = inventory.getSlotLimit(i);
             if (cur.getCount() >= slotLimit) {
-                LOGGER.info("[AE2 Bus]   Slot {}: SKIPPED — already at cap ({}/{})", i, cur.getCount(), slotLimit);
                 continue;
             }
 
@@ -214,8 +195,6 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
                 }
 
                 long canFit = slotLimit - cur.getCount();
-                LOGGER.info("[AE2 Bus]   Slot {} ({}) — MATCH snap[{}], current={}, canFit={}/{}", i, src.getItem().getRegistryName(), j, cur.getCount(), canFit, slotLimit);
-
                 IAEItemStack toDrain = src.copy();
                 // Extract up to what fits (partial fill if AE2 stack is larger than remaining space).
                 long drainAmount = Math.min(src.getStackSize(), canFit);
@@ -227,10 +206,6 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
                     cur.grow((int) extracted.getStackSize());
                     inventory.setStackInSlot(i, cur);
                     snap.set(j, null); // mark as drained
-                    phase1Drained++;
-                    LOGGER.info("[AE2 Bus]   Slot {}: MERGED {} x {} (total now: {})", i, extracted.getItem().getRegistryName(), extracted.getStackSize(), cur.getCount());
-                } else {
-                    LOGGER.info("[AE2 Bus]   Slot {}: AE2 returned null/zero — extraction failed", i);
                 }
                 break;
             }
@@ -248,7 +223,6 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
         }
 
         // ---- Phase 2 — fill empty slots with remaining snapshot items. ----
-        int phase2Drained = 0;
         for (int i = 0; i < slots; i++) {
             if (!inventory.getStackInSlot(i).isEmpty()) continue;
 
@@ -263,12 +237,8 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
                 // Skip item types already present in another slot.
                 String regName = src.getItem().getRegistryName().toString();
                 if (occupiedTypes.contains(regName)) {
-                    LOGGER.info("[AE2 Bus]   Empty slot {}: SKIPPED snap[{}] ({}) — already in hatch", i, j, regName);
                     continue;
                 }
-
-                LOGGER.info("[AE2 Bus]   Empty slot {}: trying snap[{}] ({}) — canFit={}/{}", i, j, src.getItem().getRegistryName(), src.getStackSize(), slotLimit);
-
                 IAEItemStack toDrain = src.copy();
                 // Extract up to what fits (partial fill if AE2 stack exceeds remaining space).
                 long drainAmount = Math.min(src.getStackSize(), slotLimit);
@@ -279,48 +249,47 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
                 if (extracted != null && extracted.getStackSize() > 0) {
                     inventory.setStackInSlot(i, extracted.createItemStack());
                     snap.set(j, null); // mark as drained
-                    phase2Drained++;
-                    LOGGER.info("[AE2 Bus]   Slot {}: DRAINED {} x {}", i, extracted.getItem().getRegistryName(), extracted.getStackSize());
                     drained = true;
-                } else {
-                    LOGGER.info("[AE2 Bus]   Slot {}: AE2 returned null/zero — extraction failed", i);
                 }
             }
         }
-
-        // ---- Post-drain inventory state ----
-        for (int i = 0; i < slots; i++) {
-            ItemStack s = inventory.getStackInSlot(i);
-            if (!s.isEmpty()) {
-                LOGGER.info("[AE2 Bus]   Inventory slot {}: {} x {}", i, s.getItem().getRegistryName(), s.getCount());
-            }
-        }
-
-        // ---- Remaining snapshot entries (not drained) ----
-        int remaining = 0;
-        for (int j = 0; j < snap.size(); j++) {
-            if (snap.get(j) != null && snap.get(j).getItem() != null) {
-                LOGGER.info("[AE2 Bus]   REMAINING in snapshot: [{}] {} x {}", j, snap.get(j).getItem().getRegistryName(), snap.get(j).getStackSize());
-                remaining++;
-            }
-        }
-
-        LOGGER.info("[AE2 Bus] === DRAIN END — p1={}, p2={}, remaining={} ===", phase1Drained, phase2Drained, remaining);
     }
 
     /**
-     * Gets the AE2 energy grid for powered extraction.
+     * Holds the AE2 grid context: energy grid and storage inventory.
      */
-    protected IEnergyGrid getEnergyGrid() {
-        IGridNode node = this.getGridNode(AEPartLocation.UP);
-        if (node == null) {
+    private static final class GridContext {
+        final IEnergyGrid energyGrid;
+        final IMEInventory<IAEItemStack> meInventory;
+
+        GridContext(IEnergyGrid energyGrid, IMEInventory<IAEItemStack> meInventory) {
+            this.energyGrid = energyGrid;
+            this.meInventory = meInventory;
+        }
+    }
+
+    /**
+     * Resolves the AE2 grid context in a single lookup.
+     */
+    private GridContext getGridContext() {
+        IGridNode node = AdvancedMEItemInputBus.this.getGridNode(AEPartLocation.UP);
+        if (node == null || !node.isActive()) {
             return null;
         }
         IGrid grid = node.getGrid();
-        if (grid == null) {
+        IEnergyGrid energyGrid = grid.getCache(IEnergyGrid.class);
+        if (energyGrid == null) {
             return null;
         }
-        return grid.getCache(IEnergyGrid.class);
+        IStorageGrid storage = grid.getCache(IStorageGrid.class);
+        if (storage == null) {
+            return null;
+        }
+        IMEInventory<IAEItemStack> meInv = storage.getInventory(channel);
+        if (meInv == null) {
+            return null;
+        }
+        return new GridContext(energyGrid, meInv);
     }
 
     // ---- IGridTickable implementation ----
@@ -335,7 +304,9 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
     @Override
     public TickRateModulation tickingRequest(@Nonnull IGridNode node, int ticksSinceLast) {
         // Check if AE2 channel is active — if not, do nothing
-        if (!isChannelActive()) {
+        IGridNode tickNode = this.getGridNode(AEPartLocation.UP);
+        boolean channelActive = tickNode != null && tickNode.isActive() && tickNode.meetsChannelRequirements();
+        if (!channelActive) {
             return TickRateModulation.SAME;
         }
 
@@ -351,18 +322,6 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
         }
 
         return TickRateModulation.SAME;
-    }
-
-    /**
-     * Checks whether the AE2 channel is active.
-     */
-    protected boolean isChannelActive() {
-        IGridNode node = this.getGridNode(AEPartLocation.UP);
-        if (node == null) {
-            return false;
-        }
-        IGrid grid = node.getGrid();
-        return grid != null && node.isActive() && node.meetsChannelRequirements();
     }
 
     // ---- MachineComponentTile implementation ----
@@ -411,8 +370,6 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
     }
 
     // ---- NBT serialization ----
-    private static final String NBT_INVENTORY = "inventory";
-
     /**
      * Overrides the base deserialization to resize tracking arrays before setting up the listener.
      * <p>
@@ -445,11 +402,11 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
             }
         });
 
-        int[] slotIDs = new int[inventory.getSlots()];
-        for (int slotID = 0; slotID < slotIDs.length; slotID++) {
-            slotIDs[slotID] = slotID;
-        }
-        inventory.setStackLimit(SLOT_STACK_LIMIT, slotIDs);
+        // Re-apply stack limit after deserialization — the parent's deserialize()
+        // resets limits to defaults (64). Restore AE2-cap unlimited stacks.
+        int[] allSlots = new int[inventory.getSlots()];
+        Arrays.setAll(allSlots, i -> i);
+        inventory.setStackLimit(Integer.MAX_VALUE, allSlots);
     }
 
     @Override

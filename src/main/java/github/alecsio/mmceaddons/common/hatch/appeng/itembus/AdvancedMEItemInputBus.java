@@ -24,11 +24,7 @@ import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -50,8 +46,8 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
     /** Minimum polling interval in ticks. */
     public static final int MIN_POLLING_INTERVAL_TICKS = 1;
 
-    /** Maximum polling interval in ticks (72000 = 1 hour). */
-    public static final int MAX_POLLING_INTERVAL_TICKS = 72000;
+    /** Maximum polling interval in ticks (720000 = 10 hour). */
+    public static final int MAX_POLLING_INTERVAL_TICKS = 720000;
 
     private static final int SLOT_COUNT = 16;
 
@@ -128,7 +124,7 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
      */
     protected void updateSnapshot() {
         Optional<IMEInventory<IAEItemStack>> optInventory = getStorageInventory();
-        if (!optInventory.isPresent()) {
+        if (optInventory.isEmpty()) {
             return;
         }
 
@@ -220,7 +216,7 @@ public class AdvancedMEItemInputBus extends MEItemBus implements IGridTickable {
             // Find a snapshot entry that matches this slot's stack exactly (including NBT).
             IAEItemStack src = null;
             for (IAEItemStack s : snapByItem.values()) {
-                if (s != null && appeng.util.item.AEItemStack.fromItemStack(cur).equals(s)) {
+                if (s != null && Objects.equals(appeng.util.item.AEItemStack.fromItemStack(cur), s)) {
                     src = s;
                     break;
                 }

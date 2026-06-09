@@ -5,7 +5,6 @@ import github.alecsio.mmceaddons.common.hatch.appeng.itembus.AdvancedMEItemInput
 import github.alecsio.mmceaddons.common.hatch.appeng.itembus.ContainerAdvancedMEItemInputBus;
 import github.alecsio.mmceaddons.common.network.AdvancedMESettingsMessage;
 import github.alecsio.mmceaddons.common.network.AdvancedMERSyncMessage;
-import hellfirepvp.modularmachinery.client.gui.GuiContainerBase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
@@ -14,13 +13,15 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 
+import javax.annotation.Nonnull;
+
 /**
  * GUI for the Advanced ME Item Input Bus.
  * <p>
  * Left side: polling rate text field and force rescan button (config area cleared).
  * Right side: read-only 4x4 grid showing drained items from AE2 (SlotDisabled).
  */
-public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvancedMEItemInputBus> {
+public class GuiAdvancedMEItemInputBus extends GuiAdvancedMEBase {
 
     /** Custom background texture for the Advanced ME Item Input Bus. */
     private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(
@@ -29,22 +30,15 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
     /** Tile position, stored from block activation. */
     private final BlockPos pos;
 
-    // ---- Grid positions (matching advancedmeiteminputbus.png texture) ----
-    private static final int LEFT_GRID_X = 8;
-    private static final int RIGHT_GRID_X = 90;
-    private static final int GRID_Y = 50;
-    private static final int GRID_COLS = 4;
-    private static final int GRID_ROWS = 4;
-
-    // ---- Polling rate text field (above left grid) ----
+    // ---- Polling rate text field ----
     private static final int POLLING_FIELD_X = 8;
     private static final int POLLING_FIELD_Y = 50;
     private static final int POLLING_FIELD_W = 70;
     private static final int POLLING_FIELD_H = 14;
 
-    // ---- Force rescan button (below polling field) ----
+    // ---- Force rescan button ----
     private static final int FORCE_RESCAN_X = POLLING_FIELD_X;
-    private static final int FORCE_RESCAN_Y = POLLING_FIELD_Y;
+    private static final int FORCE_RESCAN_Y = POLLING_FIELD_Y + POLLING_FIELD_H + 3;
     private static final int FORCE_RESCAN_W = 84;
     private static final int FORCE_RESCAN_H = 19;
 
@@ -60,11 +54,6 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
     public GuiAdvancedMEItemInputBus(AdvancedMEItemInputBus owner, net.minecraft.entity.player.EntityPlayer player) {
         super(new ContainerAdvancedMEItemInputBus(owner, player));
         this.pos = owner.getPos();
-    }
-
-
-    @Override
-    protected void setWidthHeight() {
         this.xSize = 176;
         this.ySize = 208;
     }
@@ -89,7 +78,7 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
         // Force rescan button — below the polling field, aligned with Polling Rate label
         forceRescanButton = new GuiButton(1,
                 guiLeft + FORCE_RESCAN_X,
-                guiTop + FORCE_RESCAN_Y + (FORCE_RESCAN_H - 8) / 2 + 32,
+                guiTop + FORCE_RESCAN_Y + (FORCE_RESCAN_H - 8) / 2,
                 FORCE_RESCAN_W,
                 FORCE_RESCAN_H,
                 "Force Rescan");
@@ -97,22 +86,20 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+    public void drawBG(final int offsetX, final int offsetY, final int mouseX, final int mouseY) {
         // Draw custom background texture
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         mc.getTextureManager().bindTexture(GUI_TEXTURE);
-        int guiLeft = (width - xSize) / 2;
-        int guiTop = (height - ySize) / 2;
-        drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
+        drawTexturedModalRect(offsetX, offsetY, 0, 0, xSize, ySize);
 
-        // Draw buttons (includes force rescan button)
+        // Draw buttons
         for (GuiButton button : buttonList) {
-            button.drawButton(mc, mouseX, mouseY, partialTicks);
+            button.drawButton(mc, mouseX, mouseY, 0);
         }
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+    public void drawFG(final int offsetX, final int offsetY, final int mouseX, final int mouseY) {
         FontRenderer font = fontRenderer;
 
         // Draw title
@@ -129,7 +116,7 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
             pollingTextField.drawTextBox();
         } else if (pollingTextField != null) {
             // Draw static display text when field is not active
-            String displayText = String.valueOf(container.getPollingInterval());
+            String displayText = String.valueOf(getContainer().getPollingInterval());
             font.drawString(displayText, POLLING_FIELD_X,
                     POLLING_FIELD_Y + (POLLING_FIELD_H - 8) / 2, 0x404040);
         }
@@ -138,7 +125,7 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
     }
 
     @Override
-    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws java.io.IOException {
+    public void mouseClicked(int mouseX, int mouseY, int mouseButton) throws java.io.IOException {
         // Check if clicking on the polling rate display area
         boolean inPollingArea = mouseX >= guiLeft + POLLING_FIELD_X
                 && mouseX <= guiLeft + POLLING_FIELD_X + POLLING_FIELD_W
@@ -149,7 +136,7 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
             // Activate the text field
             pollingFieldActive = true;
             pollingTextField.setFocused(true);
-            pollingTextField.setText(String.valueOf(container.getPollingInterval()));
+            pollingTextField.setText(String.valueOf(getContainer().getPollingInterval()));
             return;
         }
 
@@ -157,7 +144,6 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
         if (pollingFieldActive) {
             pollingFieldActive = false;
             pollingTextField.setFocused(false);
-            // Send the current value to server on blur
             sendPollingInterval();
         }
 
@@ -166,10 +152,8 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws java.io.IOException {
-        // If polling text field is active, handle input there
         if (pollingFieldActive && pollingTextField != null) {
             if (pollingTextField.textboxKeyTyped(typedChar, keyCode)) {
-                // Value changed — validate and send to server
                 String text = pollingTextField.getText();
                 try {
                     int value = Integer.parseInt(text);
@@ -178,10 +162,10 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
                         sendPollingInterval();
                     } else {
                         // Out of range — revert to valid value
-                        pollingTextField.setText(String.valueOf(container.getPollingInterval()));
+                        pollingTextField.setText(String.valueOf(getContainer().getPollingInterval()));
                     }
                 } catch (NumberFormatException e) {
-                    // Invalid number — don't send, let user correct it
+                    // Invalid number
                 }
                 return;
             }
@@ -196,10 +180,17 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
         // Keep text field in sync if server changed the value
         if (pollingTextField != null && !pollingFieldActive) {
             String currentText = pollingTextField.getText();
-            String expectedText = String.valueOf(container.getPollingInterval());
+            String expectedText = String.valueOf(getContainer().getPollingInterval());
             if (!currentText.equals(expectedText)) {
                 pollingTextField.setText(expectedText);
             }
+        }
+    }
+
+    @Override
+    protected void actionPerformed(@Nonnull GuiButton button) throws java.io.IOException {
+        if (button == forceRescanButton && pos != null) {
+            ModularMachineryAddons.INSTANCE.sendToServer(new AdvancedMERSyncMessage(pos));
         }
     }
 
@@ -213,15 +204,11 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
         super.onGuiClosed();
     }
 
-    @Override
-    protected void actionPerformed(GuiButton button) throws java.io.IOException {
-        if (button == forceRescanButton) {
-            // Send force rescan message to server
-            AdvancedMEItemInputBus bus = container.getAdvancedOwner();
-            if (bus != null && pos != null) {
-                ModularMachineryAddons.INSTANCE.sendToServer(new AdvancedMERSyncMessage(pos));
-            }
-        }
+    /**
+     * Get the container cast to our specific type.
+     */
+    private ContainerAdvancedMEItemInputBus getContainer() {
+        return (ContainerAdvancedMEItemInputBus) inventorySlots;
     }
 
     /**
@@ -235,11 +222,11 @@ public class GuiAdvancedMEItemInputBus extends GuiContainerBase<ContainerAdvance
                 // Clamp to valid range before sending
                 value = Math.max(AdvancedMEItemInputBus.MIN_POLLING_INTERVAL_TICKS,
                         Math.min(AdvancedMEItemInputBus.MAX_POLLING_INTERVAL_TICKS, value));
-                container.setPollingInterval(value);
+                getContainer().setPollingInterval(value);
                 ModularMachineryAddons.INSTANCE.sendToServer(new AdvancedMESettingsMessage(value, pos));
             } catch (NumberFormatException e) {
                 // Invalid input — revert to current valid value
-                pollingTextField.setText(String.valueOf(container.getPollingInterval()));
+                pollingTextField.setText(String.valueOf(getContainer().getPollingInterval()));
             }
         }
     }

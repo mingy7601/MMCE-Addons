@@ -342,6 +342,14 @@ idea {
     }
 }
 
+// Test configuration
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
+}
+
 tasks.processIdeaSettings.configure {
     dependsOn(tasks.injectTags)
 }
